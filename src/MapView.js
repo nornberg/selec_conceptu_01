@@ -10,14 +10,14 @@ const ViewForMaps = styled.div`
 const MapView = ({ SvgComp: SvgText, colorData, onClick }) => {
   useEffect(() => {
     console.log("[MapView.useEffect] SvgComp=", SvgText != null, " colorData=", colorData.length > 0);
-    if (colorData) {
+    if (SvgText && colorData && colorData.length > 0) {
       console.log("[MapView.useEffect] Coloring the map");
       colorData.forEach((cd) => {
         const path = document.getElementById(cd.id);
         if (path) path.style.fill = cd.color;
       });
     }
-  });
+  }, [SvgText, colorData]);
 
   const mapCssClasses = ["clicked", "pointed", "notPointed"];
   let mouseOverElement = null;
