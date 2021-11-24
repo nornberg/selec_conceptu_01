@@ -1,0 +1,45 @@
+@keyframes mapPointed {
+  from {
+    filter: brightness(100%);
+  }
+  to {
+    filter: brightness(80%);
+  }
+}
+
+@keyframes mapNotPointed {
+  from {
+    filter: brightness(80%);
+  }
+  to {
+    filter: brightness(100%);
+  }
+}
+
+@keyframes mapClicked {
+  from {
+    fill: white;
+  }
+}
+
+g {
+  stroke: black;
+  stroke-width: 25px;
+}
+
+path.pointed {
+  animation-name: mapPointed;
+  animation-duration: 0.2s;
+  animation-fill-mode: forwards;
+}
+
+path.notPointed {
+  animation-name: mapNotPointed;
+  animation-duration: 0.2s;
+  animation-fill-mode: forwards;
+}
+
+path.clicked {
+  animation-name: mapClicked;
+  animation-duration: 0.5s;
+}
