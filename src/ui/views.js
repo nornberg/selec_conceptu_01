@@ -5,16 +5,25 @@ export const Container = styled.div`
   flex-direction: column;
   padding: 10px;
   height: 100%;
-  background-color: lightblue;
+  background-color: #aaaaaa;
 `;
 
 export const View = styled.div`
   display: flex;
+  flex-direction: ${(p) => (p.column ? "column" : "row")};
+  ${(p) =>
+    p.column
+      ? `align-items: ${p.align === "start" ? "flex-start" : p.align === "end" ? "flex-end" : "center"};`
+      : `justify-content: ${p.align === "start" ? "flex-start" : p.align === "end" ? "flex-end" : "center"};`}
+`;
+
+export const ButtonBarView = styled.div`
+  display: flex;
+  justify-content: center;
 `;
 
 export const ViewForMaps = styled.div`
   display: flex;
   justify-content: center;
-  background-color: #aaaaaa;
   max-height: 60%;
 `;

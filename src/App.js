@@ -3,7 +3,7 @@ import { getCoverageData, getMapSvg, getStates } from "./api";
 import "./mapClasses.css";
 import MapView from "./MapView";
 import { Button } from "./ui/buttons";
-import { Container, View } from "./ui/views";
+import { Container, View, ButtonBarView } from "./ui/views";
 import { colorForCoverage, generateSvgUrl, yearsRange } from "./utils";
 
 const App = () => {
@@ -12,6 +12,7 @@ const App = () => {
   const [yearData, setYearData] = useState({ year: null, data: [] });
   const [mapId, setMapId] = useState(null);
   const [years, setYears] = useState([]);
+  const [selectedCity, setSelectedCity] = useState(null);
 
   useEffect(() => {
     // Este effect só é executado uma vez, ao criar o componente.
@@ -75,8 +76,9 @@ const App = () => {
   const handleMapClick = (id) => {
     if (id < 100) {
       setMapId(id);
+      setSelectedCity(null);
     } else {
-      console.log("Show city data for id=", id);
+      setSelectedCity(yearData.data.find((entry) => entry.id === id));
     }
   };
 
@@ -88,21 +90,49 @@ const App = () => {
     setYearData({ year, data: coverageData.filter((entry) => entry.year === year) });
   };
 
+  console.log({ selectedCity });
   return (
     <Container>
-      <View>Indicadores de saúde do Brasil</View>
-      <View>Cobertura da vacinação BCG</View>
-      <View>
-        <Button onClick={handleBackClick}>Voltar</Button>
+      <View align="center" column>
+        <h3>Indicadores de saúde do Brasil</h3>
+        <p>
+          <b>Cobertura da vacinação BCG</b>
+        </p>
       </View>
-      <View style={{ flexWrap: "wrap" }}>
-        {years.map((year) => (
-          <Button key={year} onClick={handleYearClick(year)} active={yearData.year === year}>
-            {year}
-          </Button>
-        ))}
-      </View>
-      <MapView svgText={svgMap} colorData={yearData.data} onClick={handleMapClick}></MapView>
+      {mapId != null && (
+        <>
+          <ButtonBarView style={{ flexWrap: "wrap" }}>
+            {years.map((year) => (
+              <Button key={year} onClick={handleYearClick(year)} active={yearData.year === year}>
+                {year}
+              </Button>
+            ))}
+          </ButtonBarView>
+          <MapView svgText={svgMap} colorData={yearData.data} onClick={handleMapClick}></MapView>
+          {mapId !== null && mapId != 0 ? (
+            <>
+              <View align="center" column>
+                Selecione um município para ver detalhes.
+                <br />
+                {selectedCity && (
+                  <>
+                    {selectedCity.name} - {selectedCity.coverage.toFixed(2)}%
+                  </>
+                )}
+              </View>
+              <ButtonBarView>
+                <Button onClick={handleBackClick}>Voltar</Button>
+              </ButtonBarView>
+            </>
+          ) : (
+            <>
+              <View align="center" column>
+                Selecione um estado para ver detalhes dos munícipios.
+              </View>
+            </>
+          )}
+        </>
+      )}
     </Container>
   );
 };
