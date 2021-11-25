@@ -112,6 +112,8 @@ const App = () => {
             });
             console.log("[App.useEffect 1][setFullData]");
             setFullData(newFullData);
+            setMapId(0);
+            setYearData({ year: 2010, data: newFullData.filter((entry) => entry.year === 2010) });
           });
         });
       });
@@ -146,17 +148,18 @@ const App = () => {
 
   const handleBackClick = (e) => {
     console.log("[App.handleBackClick] ");
-    setMapId(null);
+    setMapId(0);
   };
 
   const handleYearClick = (year) => (e) => {
-    console.log("[App.handleYearClick] ", year);
-    const newYearData = fullData.filter((entry) => entry.year === year);
-    setYearData({ year, data: newYearData });
+    console.log("[App.handleYearClick] ----------------------------------------------", year);
+    setYearData({ year, data: fullData.filter((entry) => entry.year === year) });
   };
 
   const generateSvgUrl = (id) =>
-    !id
+    id === null
+      ? null
+      : id === 0
       ? "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=image/svg+xml&qualidade=intermediaria&intrarregiao=UF"
       : `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${id}?formato=image/svg+xml&qualidade=minima&intrarregiao=municipio`;
 
