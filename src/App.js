@@ -90,7 +90,6 @@ const App = () => {
     setYearData({ year, data: coverageData.filter((entry) => entry.year === year) });
   };
 
-  console.log({ selectedCity });
   return (
     <Container>
       <View align="center" column>
