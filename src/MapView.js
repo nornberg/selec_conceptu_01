@@ -1,23 +1,16 @@
 import React from "react";
-import styled from "styled-components";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { ViewForMaps } from "./ui/views";
 
-const ViewForMaps = styled.div`
-  display: flex;
-  background-color: #aaaaaa;
-`;
-
-const MapView = ({ SvgComp: SvgText, colorData, onClick }) => {
+const MapView = ({ svgText: svgText, colorData, onClick }) => {
   useEffect(() => {
-    console.log("[MapView.useEffect] SvgComp=", SvgText != null, " colorData=", colorData.length > 0);
-    if (SvgText && colorData && colorData.length > 0) {
-      console.log("[MapView.useEffect] Coloring the map");
+    if (svgText && colorData && colorData.length > 0) {
       colorData.forEach((cd) => {
         const path = document.getElementById(cd.id);
         if (path) path.style.fill = cd.color;
       });
     }
-  }, [SvgText, colorData]);
+  }, [svgText, colorData]);
 
   const mapCssClasses = ["clicked", "pointed", "notPointed"];
   let mouseOverElement = null;
@@ -39,10 +32,9 @@ const MapView = ({ SvgComp: SvgText, colorData, onClick }) => {
     element.classList.add(className);
   };
 
-  console.log("[MapView.render]");
-  if (!SvgText) return null;
-  SvgText = SvgText.replace(/width="[0-9]+"/, "");
-  const SvgTextWithoutSizeToFitInDiv = SvgText.replace(/height="[0-9]+"/, "");
+  if (!svgText) return null;
+  svgText = svgText.replace(/width="[0-9]+"/, "");
+  const SvgTextWithoutSizeToFitInDiv = svgText.replace(/height="[0-9]+"/, "");
 
   return (
     <ViewForMaps
@@ -53,7 +45,7 @@ const MapView = ({ SvgComp: SvgText, colorData, onClick }) => {
           setTimeout(() => {
             e.target.classList.add("clicked");
           }, 10);
-          onClick(e.target.id);
+          onClick(Number(e.target.id));
         }
       }}
       onMouseOver={handleMouseOver}
