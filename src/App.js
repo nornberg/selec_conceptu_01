@@ -63,11 +63,13 @@ const App = () => {
           const obj = entry.split(",");
           let coverage = Number(obj[5]);
           if (coverage > 100) {
+            // Algumas coberturas estão mal representadas, faltando o ponto decimal.
+            // Assumi que são sempre duas casas na parte inteira do número.
             const coverageStr = String(coverage);
             const whole = coverageStr.substring(0, 2);
             const decimal = coverageStr.substring(2);
             coverage = Number(`${whole}.${decimal}`);
-            console.log(`Correcting coverage from ${coverageStr} to ${coverage} for ${obj[1]}/${obj[3]} in ${obj[4]}`);
+            //console.log(`Correcting coverage from ${coverageStr} to ${coverage} for ${obj[1]}/${obj[3]} in ${obj[4]}`);
           }
           return {
             id: Number(obj[0]),
@@ -87,7 +89,7 @@ const App = () => {
                 let currentStateAverageCoverage = 0;
                 let currentStateCoverageCount = 0;
                 const fullDataForCurrentState = newFullData.filter(
-                  (entry) => entry.idState === Number(currentState.id)
+                  (entry) => entry.idState === Number(currentState.id) && entry.year === year
                 );
                 fullDataForCurrentState.forEach((entry) => {
                   if (!entry.isState && !isNaN(entry.coverage)) {
