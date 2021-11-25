@@ -38,40 +38,98 @@ const coverageColors = [
   "#006837", // 9 = verde, 100%
 ];
 
+const yearsRange = { first: 2010, last: 2019 };
+
 const App = () => {
   const [svgMap, setSvgMap] = useState(null);
-  const [colorData, setColorData] = useState([]);
-  const [year, setYear] = useState(2010);
+  const [fullData, setFullData] = useState([]);
+  const [yearData, setYearData] = useState({ year: null, data: [] });
   const [mapId, setMapId] = useState(null);
+  const [years, setYears] = useState([]);
 
   useEffect(() => {
     console.log("[App.useEffect 1]");
+    const yearsArray = [];
+    for (let y = yearsRange.first; y <= yearsRange.last; y++) {
+      yearsArray.push(y);
+    }
+    setYears(yearsArray);
     fetch(process.env.PUBLIC_URL + "/mun_data_bcg.csv").then((csvResponse) => {
       csvResponse.text().then((text) => {
         text = text.split("\n");
         delete text[0];
         const colorIndex = (coverage) => (coverage === 0 ? 0 : Math.trunc((coverage - 1) / 10));
-        const coverageData = text.map((entry) => {
+        const newFullData = text.map((entry) => {
           const obj = entry.split(",");
-          return { id: obj[0], year: obj[4], coverage: obj[5], color: coverageColors[colorIndex(obj[5])] };
+          let coverage = Number(obj[5]);
+          if (coverage > 100) {
+            const coverageStr = String(coverage);
+            const whole = coverageStr.substring(0, 2);
+            const decimal = coverageStr.substring(2);
+            coverage = Number(`${whole}.${decimal}`);
+            console.log(`Correcting coverage from ${coverageStr} to ${coverage} for ${obj[1]}/${obj[3]} in ${obj[4]}`);
+          }
+          return {
+            id: Number(obj[0]),
+            name: obj[1],
+            idState: Number(obj[2]),
+            state: obj[3],
+            year: Number(obj[4]),
+            coverage,
+            color: coverageColors[colorIndex(Number(obj[5]))],
+            isState: false,
+          };
         });
-        console.log("[App.useEffect 1][setColorData]");
-        setColorData(coverageData);
+        fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados").then((statesResponse) => {
+          statesResponse.json().then((states) => {
+            yearsArray.forEach((year) => {
+              states.forEach((currentState) => {
+                let currentStateAverageCoverage = 0;
+                let currentStateCoverageCount = 0;
+                const fullDataForCurrentState = newFullData.filter(
+                  (entry) => entry.idState === Number(currentState.id)
+                );
+                fullDataForCurrentState.forEach((entry) => {
+                  if (!entry.isState && !isNaN(entry.coverage)) {
+                    currentStateAverageCoverage += entry.coverage;
+                    currentStateCoverageCount++;
+                  }
+                });
+                currentStateAverageCoverage = currentStateAverageCoverage / currentStateCoverageCount;
+                newFullData.push({
+                  id: Number(currentState.id),
+                  name: currentState.nome,
+                  idState: Number(currentState.id),
+                  state: currentState.sigla,
+                  year,
+                  coverage: currentStateAverageCoverage,
+                  color: coverageColors[colorIndex(currentStateAverageCoverage)],
+                  isState: true,
+                });
+              });
+            });
+            console.log("[App.useEffect 1][setFullData]");
+            setFullData(newFullData);
+          });
+        });
       });
     });
   }, []);
 
   useEffect(() => {
     console.log("[App.useEffect 2]");
-    //console.log("[App.useEffect 2] Clearing current svg...");
-    //setSvgMap(null);
     const svgUrl = generateSvgUrl(mapId);
-    fetch(svgUrl).then((svgResponse) => {
-      svgResponse.text().then((text) => {
-        console.log("[App.useEffect 2][setSvgMap]");
-        setSvgMap(text);
+    fetch(svgUrl)
+      .then((svgResponse) => {
+        svgResponse.text().then((text) => {
+          console.log("[App.useEffect 2][setSvgMap]");
+          setSvgMap(text);
+        });
+      })
+      .catch((err) => {
+        console.log("[App.useEffect 2] Clearing current svg...");
+        setSvgMap(null);
       });
-    });
   }, [mapId]);
 
   const handleMapClick = (id) => {
@@ -90,8 +148,9 @@ const App = () => {
   };
 
   const handleYearClick = (year) => (e) => {
-    console.log("[App.handleYearClick] ", year, e.target);
-    setYear(year);
+    console.log("[App.handleYearClick] ", year);
+    const newYearData = fullData.filter((entry) => entry.year === year);
+    setYearData({ year, data: newYearData });
   };
 
   const generateSvgUrl = (id) =>
@@ -99,7 +158,7 @@ const App = () => {
       ? "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=image/svg+xml&qualidade=intermediaria&intrarregiao=UF"
       : `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${id}?formato=image/svg+xml&qualidade=minima&intrarregiao=municipio`;
 
-  console.log("[App.render] ");
+  console.log("[App.render] ", yearData);
   return (
     <Container>
       <View>Indicadores de saúde do Brasil</View>
@@ -107,15 +166,14 @@ const App = () => {
       <View>
         <Button onClick={handleBackClick}>Voltar</Button>
       </View>
-      <View>
-        <Button onClick={handleYearClick(2010)} active={year === 2010}>
-          2010
-        </Button>
-        <Button onClick={handleYearClick(2011)} active={year === 2011}>
-          2011
-        </Button>
+      <View style={{ flexWrap: "wrap" }}>
+        {years.map((year) => (
+          <Button key={year} onClick={handleYearClick(year)} active={yearData.year === year}>
+            {year}
+          </Button>
+        ))}
       </View>
-      <MapView SvgComp={svgMap} colorData={colorData} onClick={handleMapClick}></MapView>
+      <MapView SvgComp={svgMap} colorData={yearData.data} onClick={handleMapClick}></MapView>
     </Container>
   );
 };
